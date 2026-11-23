@@ -110,7 +110,7 @@ mkfs.exfat -L EMUROMS "${LOOP}p3" >/dev/null
 mount "${LOOP}p2" "$ROOT"
 mount "${LOOP}p1" "$ROOT/boot/firmware"
 log "Installing EmuPi files"
-rsync -a rootfs/ "$ROOT/"
+rsync -a --chown=root:root rootfs/ "$ROOT/"
 chmod 0440 "$ROOT/etc/sudoers.d/emupi"
 chmod +x "$ROOT"/opt/emupi/bin/* "$ROOT"/opt/emupi/launcher/launcher.py
 

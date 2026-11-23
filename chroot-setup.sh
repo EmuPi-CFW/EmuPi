@@ -18,10 +18,24 @@ for p in libretro-fceumm; do
 done
 
 echo "[chroot] user"
-if ! getent passwd 1000 >/dev/null; then
-    useradd -M -u 1000 -s /bin/bash "$EMUPI_USER"
+# The services, sudoers file and home directory all use the name "emupi", so the account
+# MUST be called emupi with UID 1000. Some base images already ship a UID-1000 user
+# (e.g. "pi"); rename it instead of leaving it and never creating emupi.
+USER_NAME=emupi
+OLD=$(getent passwd 1000 | cut -d: -f1 || true)
+if getent passwd emupi >/dev/null; then
+    :
+elif [ -n "$OLD" ]; then
+    echo "[chroot] renaming existing UID-1000 user '$OLD' to emupi"
+    usermod -l emupi "$OLD"
+    getent group "$OLD" >/dev/null && groupmod -n emupi "$OLD" || true
+    usermod -d /home/emupi emupi
+    rm -rf "/home/$OLD"
+else
+    useradd -M -u 1000 -s /bin/bash emupi
 fi
-USER_NAME=$(getent passwd 1000 | cut -d: -f1)
+[ "$(id -u emupi)" = 1000 ] || { echo "emupi is not UID 1000"; exit 1; }
+rm -f /etc/sudoers.d/010_pi-nopasswd
 echo "$USER_NAME:$EMUPI_PASS" | chpasswd
 for g in video audio input render plugdev netdev dialout sudo; do
     getent group "$g" >/dev/null && usermod -aG "$g" "$USER_NAME" || true
