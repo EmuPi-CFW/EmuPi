@@ -645,10 +645,22 @@ class App:
             if self.dirty or animating:
                 self.draw()
                 self.present()
+                self.last_present = now
                 self.dirty = False
                 self.clock.tick(30)
+                if not getattr(self, "shot_saved", False):
+                    self.shot_saved = True  # proof of what was rendered, readable from a PC
+                    try:
+                        pygame.image.save(self.canvas, "/boot/firmware/emupi-logs/launcher-frame.png")
+                    except Exception as e:
+                        dlog("could not save launcher-frame.png:", e)
             else:
                 pygame.time.wait(25)
+                # KMSDRM can leave the first buffer unshown until a later swap, so keep
+                # re-presenting the (unchanged) frame ~10x/s even when nothing is animating.
+                if now - getattr(self, "last_present", 0) > 0.1:
+                    self.present()
+                    self.last_present = now
 
 
 def main():
