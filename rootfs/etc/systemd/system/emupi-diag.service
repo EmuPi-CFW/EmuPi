@@ -1,0 +1,12 @@
+[Unit]
+Description=EmuPi OS diagnostics snapshot (written to boot partition)
+After=emupi.service multi-user.target boot-firmware.mount
+
+[Service]
+Type=oneshot
+ExecStartPre=/bin/sleep 25
+ExecStart=/opt/emupi/bin/emupi-diag after-boot
+TimeoutStartSec=300
+
+[Install]
+WantedBy=multi-user.target

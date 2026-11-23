@@ -1,0 +1,2 @@
+emupi ALL=(root) NOPASSWD: /usr/bin/systemctl poweroff, /usr/bin/systemctl reboot
+emupi ALL=(root) NOPASSWD: /opt/emupi/bin/emupi-diag *

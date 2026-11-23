@@ -1,0 +1,15 @@
+[Unit]
+Description=EmuPi OS first-boot setup
+After=local-fs.target boot-firmware.mount
+Before=NetworkManager.service ssh.service emupi.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/opt/emupi/bin/emupi-firstboot
+# A failure here must never block or stop the boot.
+SuccessExitStatus=0 1 2
+TimeoutStartSec=300
+
+[Install]
+WantedBy=multi-user.target
