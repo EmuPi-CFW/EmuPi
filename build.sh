@@ -5,7 +5,7 @@ set -Eeuo pipefail
 cd "$(dirname "$(readlink -f "$0")")"
 
 # ---- settings (override with environment variables) ------------------------
-EMUPI_VERSION="${EMUPI_VERSION:-1.1}"
+EMUPI_VERSION="${EMUPI_VERSION:-1.0.0}"
 BASE_URL="${BASE_URL:-https://downloads.raspberrypi.com/raspios_lite_armhf/images/raspios_lite_armhf-2024-11-19/2024-11-19-raspios-bookworm-armhf-lite.img.xz}"
 BASE_IMG="${BASE_IMG:-}"            # path to a local .img/.img.xz to use instead of downloading
 ROOT_EXTRA_MB="${ROOT_EXTRA_MB:-1024}"  # extra space added to the root filesystem
