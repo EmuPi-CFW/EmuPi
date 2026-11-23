@@ -13,6 +13,7 @@ Test on a desktop:
     EMUPI_ROMS=./roms python3 launcher.py --windowed --cmd-file /tmp/emupi-cmd
 """
 import argparse
+import faulthandler
 import glob
 import json
 import math
@@ -292,11 +293,15 @@ class App:
             self.screen = pygame.display.set_mode((W * 2, H * 2))
         else:
             self.screen = None
-            attempts = (
-                ("FULLSCREEN|SCALED %dx%d" % (W, H), lambda: pygame.display.set_mode((W, H), pygame.FULLSCREEN | pygame.SCALED)),
-                ("FULLSCREEN native", lambda: pygame.display.set_mode((0, 0), pygame.FULLSCREEN)),
-                ("FULLSCREEN %dx%d" % (W, H), lambda: pygame.display.set_mode((W, H), pygame.FULLSCREEN)),
-            )
+            attempts = [
+                ("FULLSCREEN %dx%d (real low-res mode)" % (W, H), "lowres", lambda: pygame.display.set_mode((W, H), pygame.FULLSCREEN)),
+                ("FULLSCREEN native", "native", lambda: pygame.display.set_mode((0, 0), pygame.FULLSCREEN)),
+                ("FULLSCREEN|SCALED %dx%d" % (W, H), "scaled", lambda: pygame.display.set_mode((W, H), pygame.FULLSCREEN | pygame.SCALED)),
+            ]
+            force = os.environ.get("EMUPI_MODE", "").strip().lower()  # lowres | native | scaled
+            if force:
+                attempts.sort(key=lambda a: a[1] != force)
+            attempts = [(n, f) for n, _k, f in attempts]
             last = None
             for name, fn in attempts:
                 try:
@@ -599,11 +604,19 @@ class App:
 
     def present(self):
         sw, sh = self.screen.get_size()
+        t0 = time.monotonic()
         if (sw, sh) == (W, H):
             self.screen.blit(self.canvas, (0, 0))
         else:
-            pygame.transform.scale(self.canvas, (sw, sh), self.screen)
+            k = min(sw / W, sh / H)
+            tw, th = max(1, int(W * k)), max(1, int(H * k))
+            if (tw, th) != (sw, sh):
+                self.screen.fill((0, 0, 0))
+            pygame.transform.scale(self.canvas, (tw, th), self.screen.subsurface(((sw - tw) // 2, (sh - th) // 2, tw, th)))
         pygame.display.flip()
+        self.flips = getattr(self, "flips", 0) + 1
+        if self.flips <= 3 or self.flips % 300 == 0:
+            dlog("flip #%d ok (%.0f ms) screen=%dx%d" % (self.flips, (time.monotonic() - t0) * 1000, sw, sh))
 
     # --- main loop
     def run(self):
@@ -654,6 +667,7 @@ def main():
             pygame.display.quit()
             app = App(args)
         dlog("running; games: %s" % app.counts)
+        faulthandler.dump_traceback_later(20, repeat=False, file=sys.stderr)  # hang detector
         app.run()
         dlog("main loop ended normally (window closed) without a command")
     except SystemExit:

@@ -14,7 +14,7 @@ EMUPI_USER="${EMUPI_USER:-emupi}"
 EMUPI_PASS="${EMUPI_PASS:-emupi}"
 EMUPI_HOSTNAME="${EMUPI_HOSTNAME:-emupi}"
 EMUPI_SSH="${EMUPI_SSH:-1}"
-VIDEO_MODE="${VIDEO_MODE:-}"  # kernel HDMI mode, e.g. 1280x720@60; empty = auto (default)
+VIDEO_MODE="${VIDEO_MODE:-1280x720@60}"
 COMPRESS="${COMPRESS:-1}"
 EMUPI_DEBUG_LOGS="${EMUPI_DEBUG_LOGS:-1}"  # 1 = persistent journal + extra diagnostics
 SHOW_CONSOLE="${SHOW_CONSOLE:-1}"   # 1 = show kernel/systemd boot messages, 0 = quiet boot
